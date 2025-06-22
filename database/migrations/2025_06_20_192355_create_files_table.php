@@ -18,8 +18,8 @@ return new class extends Migration
             $table->string('path')->nullable();
             $table->nestedSet();
             $table->boolean('is_folder');
-            $table->string('mime');
-            $table->integer('size');
+            $table->string('mime')->nullable();
+            $table->integer('size')->nullable();
             $table->timestamps();
             $table->foreignIdFor(User::class, 'created_by');
             $table->foreignIdFor(User::class, 'updated_by');

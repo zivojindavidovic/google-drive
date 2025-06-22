@@ -1,18 +1,16 @@
 <template>
     <nav class="min-w-[200px]">
-        <div class="h-[80px] px-3 items-center gap-3">
-            <Link href="/">
-                <ApplicationLogo
-                    class="block h-9 w-auto fill-current text-gray-800"
-                />
-            </Link>
+        <Link :href="route('myFiles')" class="h-[80px] px-3 items-center gap-3">
+            <ApplicationLogo
+                class="block h-9 w-auto fill-current text-gray-800"
+            />
             GoogleDrive
-        </div>
+        </Link>
         <div class="px-3">
-            <CreateNewDropdown />
+            <CreateNewDropdown/>
 
             <div class="py-3">
-                <NavLink :active="true" href="/">My Files</NavLink>
+                <NavLink :href="route('myFiles')" :active="$page.url === '/my-files'">My Files</NavLink>
                 <NavLink href="/">Shared with me</NavLink>
                 <NavLink href="/">Shared by me</NavLink>
                 <NavLink href="/">Trash</NavLink>
@@ -24,7 +22,7 @@
 <script setup>
 
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
-import { Link } from '@inertiajs/vue3';
+import {Link, router} from '@inertiajs/vue3';
 import CreateNewDropdown from "@/Components/app/CreateNewDropdown.vue";
 import NavLink from "@/Components/NavLink.vue";
 
