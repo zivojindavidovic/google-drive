@@ -23,33 +23,36 @@
                 </li>
             </ol>
         </nav>
-        <table class="min-w-full">
-            <thead class="bg-gray-100 border-b">
+        <div class="flex-1 overflow-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-100 border-b">
                 <tr>
                     <th class="text-sm font-medium text-gray-900 px-6 py-4 text-left">Name</th>
                     <th class="text-sm font-medium text-gray-900 px-6 py-4 text-left">Owner</th>
                     <th class="text-sm font-medium text-gray-900 px-6 py-4 text-left">Last modified</th>
                     <th class="text-sm font-medium text-gray-900 px-6 py-4 text-left">File size</th>
                 </tr>
-            </thead>
-            <tbody>
-                <tr v-for="file of files.data" :key="file.id"
+                </thead>
+                <tbody>
+                <tr v-for="file of allFile.data" :key="file.id"
                     @dblclick="openFolder(file)"
                     class="bg-white border-b transition duration-300 ease-in-out hover:bg-gray-100">
 
 
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 flex items-center">
-                        <FileIcon :file="file" />
-                        {{file.name}}
+                        <FileIcon :file="file"/>
+                        {{ file.name }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{file.owner}}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{file.updated_at}}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{file.size}}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ file.owner }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ file.updated_at }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ file.size }}</td>
                 </tr>
-            </tbody>
-        </table>
-        <div v-if="!files.data.length" class="py-8 text-center text-lg text-gray-400">
-            There is no data in this folder
+                </tbody>
+            </table>
+            <div v-if="!allFile.data.length" class="py-8 text-center text-lg text-gray-400">
+                There is no data in this folder
+            </div>
+            <div ref="loadMoreIntersect"></div>
         </div>
     </AuthenticatedLayout>
 </template>
@@ -60,12 +63,20 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import {router, Link} from "@inertiajs/vue3";
 import {HomeIcon} from '@heroicons/vue/20/solid'
 import FileIcon from "@/Components/app/FileIcon.vue";
+import {onMounted, onUpdated, ref} from "vue";
+import {httpGet} from "@/Helper/http-helper.js";
 
 
-const {files} = defineProps({
+const props = defineProps({
     files: Object,
     folder: Object,
     ancestors: Object
+})
+
+const loadMoreIntersect = ref(null)
+const allFile = ref({
+    data: props.files.data,
+    next: props.files.links.next
 })
 
 function openFolder(file) {
@@ -75,6 +86,35 @@ function openFolder(file) {
 
     router.visit(route('myFiles', {folder: file.path}))
 }
+
+function loadMore() {
+    console.log(props.files.links.next)
+
+    if (allFile.value.next === null) {
+        return
+    }
+
+    httpGet(allFile.value.next)
+        .then(res => {
+            allFile.value.data = [...allFile.value.data, ...res.data]
+            allFile.value.next = res.links.next
+        })
+}
+
+onUpdated(() => {
+    allFile.value = {
+        data: props.files.data,
+        next: props.files.links.next
+    }
+})
+
+onMounted(() => {
+    const observer = new IntersectionObserver((entries) => entries.forEach(entry => entry.isIntersecting && loadMore()), {
+        rootMargin: '-250px 0px 0px 0px'
+    })
+
+    observer.observe(loadMoreIntersect.value)
+})
 
 </script>
 
